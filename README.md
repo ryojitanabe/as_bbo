@@ -2,7 +2,7 @@
 
 This repository provides the source code to reproduce results shown in the following paper.
 
-> Ryoji Tanabe, **Benchmarking Feature-based Algorithm Selection Systems for Black-box Numerical Optimization**, submitted.
+> Ryoji Tanabe, **Benchmarking Feature-based Algorithm Selection Systems for Black-box Numerical Optimization**,  IEEE Transactions on Evolutionary Computation, [pdf](https://arxiv.org/abs/2109.08377)
 
 The source code highly depends on the COCO framework and the flacco package:
 
