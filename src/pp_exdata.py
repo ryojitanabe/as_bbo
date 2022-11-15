@@ -126,7 +126,26 @@ def unpack_data(exdata_dir_path, alg_url):
             with tarfile.open(tar_file_path, 'r:*') as tar:
                 # The name of an unpacked directory does not always represent its algorithm name. For example, "MOS_torre_noiseless.tar.gz" includes a directory "BBOB2010rawdata", not "MOS". For the sake of simplicity, the name of each directory is renamed to its algorithm name.
                 unpacked_dir_path = os.path.join(exdata_dir_path, tar.getnames()[0].split('/')[0])
-                tar.extractall(exdata_dir_path)
+                def is_within_directory(directory, target):
+                    
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    
+                    return prefix == abs_directory
+                
+                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise Exception("Attempted Path Traversal in Tar File")
+                
+                    tar.extractall(path, members, numeric_owner=numeric_owner) 
+                    
+                
+                safe_extract(tar, exdata_dir_path)
                 os.rename(unpacked_dir_path, renamed_dir_path)
         i += 1
         logger.info("Data for {} have been unpacked ({})".format(alg, i))
