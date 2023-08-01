@@ -46,10 +46,13 @@ def make_alg_url_file(bbob_suite, alg_url_file_path, bbob_md_file_path='./bbob.m
                 url = url.replace(' ', '')
 
                 # The two data sets (the 2015 and 2013 BBOB settings) are available for these five optimizers
-                if alg_name == 'GP1-CMAES' or alg_name == 'GP5-CMAES' or alg_name == 'IPOPCMAv3p61' or alg_name == 'RF1-CMAES' or alg_name == 'RF5-CMAES':
-                    url = url.replace('-[2013instances]({{page.dataDir', '')                                                        
-                url =  'http://coco.gforge.inria.fr/data-archive/{}/'.format(bbob_suite) + url
+                if alg_name in ['GP1-CMAES', 'GP5-CMAES', 'IPOPCMAv3p61', 'RF1-CMAES', 'RF5-CMAES']:
+                    url = url.replace('-[2013instances]({{page.dataDir', '')
+                #url =  'http://coco.gforge.inria.fr/data-archive/{}/'.format(bbob_suite) + url
 
+                url = os.path.join('https://numbbo.github.io/data-archive/data-archive/', bbob_suite, url)
+                #https://numbbo.github.io/data-archive/data-archive/bbob/2013/P-DCN_tran_noiseless.tgz
+                
                 if alg_name not in incomplete_data_sets: 
                     fh_csv.write(alg_name + "," + url + "\n")
     fh_csv.close()
@@ -115,10 +118,12 @@ def unpack_data(exdata_dir_path, alg_url):
     ----------
     """                
     i = 0
-    for alg, url in alg_url:                
+    for alg, url in alg_url:
+        print(alg, url)
         tar_file_path = url.split('/')[-1]        
         tar_file_path = os.path.join(exdata_dir_path, tar_file_path)
         renamed_dir_path = os.path.join(exdata_dir_path, alg)
+        print(tar_file_path)
         
         if os.path.exists(renamed_dir_path):
             logger.warning("The directory %s already exists, so the corresponding tar file was not unpacked", renamed_dir_path)            
@@ -202,7 +207,7 @@ def pp_bbob_data_file(res_file_path, data_pos, out_file_path, targets, target_po
     else:
         run_data = all_run_data[data_pos]
         
-    fevals = run_data[:, 0].astype(np.int)       
+    fevals = run_data[:, 0].astype(int)       
     # TODO: This may have to be changed for bbob-constrained
     error_vals = run_data[:, 1]
 
@@ -496,23 +501,24 @@ def run():
     
     # Download a markdown file 'bbob.md' from https://raw.githubusercontent.com/numbbo/data-archive/master/bbob.md (or, e.g., bbob-noisy.md). 'bbob.md' provide names and URL links to performance data of all algorithms benchmarked on the noiseless BBOB suite.
     logger.info('==================== Download a markdown file %s.md ====================', bbob_suite)    
-    url = 'https://raw.githubusercontent.com/numbbo/data-archive/master/{}.md'.format(bbob_suite)
+    url = os.path.join('https://raw.githubusercontent.com/numbbo/data-archive/gh-pages/', '{}.md'.format(bbob_suite))
     download_file(url, os.path.join(exdata_dir_path, os.path.basename(url)))
-
+        
     # Extract the name and the URL link of each algorithm from bbob.md
     # The incomplete_data_sets list include incomplete performance data to be removed. I manually found 'JADEb', 'EvoSpace-PSO-GA', 'Ord-N-DTS-CMA-ES' are incompleted. 'BFGS-P-09' is incompleted for 20 dimensions
     # For bbob-noisy,  'CMAEGS' and 'xNESas' are incomplete.
     # TODO: Implement an automatic sanity check function.
     make_alg_url_file(bbob_suite, alg_url_file_path='{}/alg_url.csv'.format(exdata_dir_path), bbob_md_file_path='{}/{}.md'.format(exdata_dir_path, bbob_suite), incomplete_data_sets=['JADEb', 'EvoSpace-PSO-GA', 'Ord-N-DTS-CMA-ES', 'BFGS-P-09', 'BFGS-P-Instances', 'BFGS-P-range', 'BFGS-P-StPt'])        
-    alg_url = np.loadtxt('{}/alg_url.csv'.format(exdata_dir_path), delimiter=",", comments="#", dtype=np.str)
+    alg_url = np.loadtxt('{}/alg_url.csv'.format(exdata_dir_path), delimiter=",", comments="#", dtype=str)
 
     # Download performance data for all algorithms listed in alg_url
     logger.info('==================== Download exdata ====================')
     download_data(alg_url, bbob_suite)
     
-    # Unpack the tar files
+    # # Unpack the tar files
     logger.info('==================== Unpack the tar files ====================')
     unpack_data(exdata_dir_path, alg_url)
+
     
     # Calculate the number of function evaluations to reach a target in {10^{2}, 10^{1.8}, ..., 10^{-7.8}, 10^{-8}}. Results are saved in ./pp_bbob_exdata/fevals_to_reach.
     # NOTE: Only the first five instances are considered.
