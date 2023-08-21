@@ -45,7 +45,7 @@ def construct_ap_kt(bbob_suite, dims, fun_ids, all_algs, target='-2.0', top_k=3)
     with open(out_file_path, 'w') as fh:
         fh.write("{}".format(','.join(ap)))
 
-def portfolio_construction(portfolio_list)
+def portfolio_construction(portfolio_list):
     """
     Construct a set of portfoilios. Results are saved in ./alg_portfolio.
 
@@ -470,7 +470,7 @@ def run():
     portfolio_construction(portfolio_list)
     
     # Postprocess performance data of each optimizer in an algorithm portfolio, including the calculation of relERT and relSP1 with PAR10.
-  for ap_name in portfolio_list:                
+    for ap_name in portfolio_list:
         for per_metric in ['ert', 'sp1']:
             # # # for LOIO-CV
             pp_alg_portfolio_data_loio_cv(bbob_suite, dims, all_fun_ids, ap_name, target='-2.0', per_metric=per_metric)
